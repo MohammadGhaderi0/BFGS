@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage{amsmath} % For mathematical symbols and equations
+\usepackage{graphicx} % Required for inserting images
+
+\title{Optimization Method: BFGS}
+\author{Mohammad Ghaderi,Armin Jodat,Amirhossein Amin Negareshi}
+\date{May 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+In the realm of optimization, various methods have been developed to find the minimum of a function. Among these, Gradient Descent and Newton's Method are two well-known approaches.
+
+\section{Gradient Descent}
+
+Gradient Descent is an iterative optimization algorithm used to find the minimum of a function. It is widely used due to its simplicity and effectiveness, especially in machine learning and deep learning applications. The update rule for Gradient Descent is given by:
+\begin{equation}
+x_{k+1} = x_k - \alpha \nabla f(x_k)
+\end{equation}
+where \( \alpha \) is the learning rate and \( \nabla f(x_k) \) is the gradient of the function at \( x_k \).
+
+\section{Newton's Method}
+
+Newton's Method, on the other hand, uses second-order information to accelerate convergence. The update rule for Newton's Method is:
+\begin{equation}
+x_{k+1} = x_k - H_f(x_k)^{-1} \nabla f(x_k)
+\end{equation}
+where \( H_f(x_k) \) is the Hessian matrix of second derivatives at \( x_k \).
+
+While Newton's Method converges faster than Gradient Descent, it has some drawbacks:
+\begin{itemize}
+    \item Computing the Hessian matrix can be computationally expensive.
+    \item Inverting the Hessian matrix is even more computationally demanding.
+    \item Newton's Method requires the Hessian to be positive definite, which is not always the case.
+\end{itemize}
+
+\section{Quasi-Newton Methods}
+
+Quasi-Newton methods aim to retain the rapid convergence of Newton's Method while reducing the computational burden associated with calculating and inverting the Hessian matrix. These methods construct an approximation to the Hessian matrix that is updated iteratively.
+
+\section{The BFGS Algorithm}
+
+One of the most popular Quasi-Newton methods is the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm. The BFGS algorithm updates the Hessian approximation \( B_k \) at each iteration using the following formula:
+\begin{equation}
+B_{k+1} = B_k + \frac{y_k y_k^T}{y_k^T s_k} - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k}
+\end{equation}
+where \( s_k = x_{k+1} - x_k \) and \( y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \).
+
+\subsection{Algorithm Steps}
+
+The BFGS algorithm proceeds as follows:
+
+1. Choose initial guess \( x_0 \)
+
+2. Choose \( B_0 \), initial Hessian guess, e.g., \( B_0 = I \)
+
+3. For \( k = 0, 1, 2, \ldots \) do
+
+\hspace{0.5cm} 1. Solve \( B_k p_k = -\nabla f (x_k) \)
+
+\hspace{0.5cm} 2. line search to find \( \alpha_k \) such that it sufficiently reduces \( f(x_k + \alpha_k p_k) \)
+
+\hspace{0.5cm} 3. Set \( s_k = \alpha_k p_k \)
+
+\hspace{0.5cm} 4. \( x_{k+1} = x_k + s_k \)
+
+\hspace{0.5cm} 5. \( y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \)
+
+\hspace{0.5cm} 6. \( B_{k+1} = B_k + \Delta B_k \)
+
+4. End for
+
+Where
+\begin{equation}
+\Delta B_k \equiv \frac{y_k y_k^T}{y_k^T s_k} - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k}
+\end{equation}
+
+\subsection{Updating the Inverse Hessian in the BFGS Algorithm}
+
+An alternative approach within the BFGS framework involves updating the inverse Hessian matrix directly. This method updates the inverse Hessian matrix \( H_k \) at each iteration using the following steps:
+
+1. Choose initial guess \( x_0 \)
+
+2. Choose \( H_0 \), initial inverse Hessian guess, e.g., \( H_0 = I \)
+
+3. For \( k = 0, 1, 2, \ldots \) do:
+
+\hspace{0.5cm} 1. Compute search direction: \( p_k = -H_k \nabla f (x_k) \)
+
+\hspace{0.5cm} 2. Perform a line search to determine step size \( \alpha_k \)
+
+\hspace{0.5cm} 3. Set \( s_k = \alpha_k p_k \)
+
+\hspace{0.5cm} 4. \( x_{k+1} = x_k + s_k \)
+
+\hspace{0.5cm} 5. \( y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \)
+
+\hspace{0.5cm} 6. Update inverse Hessian \( H_k \):
+\begin{equation}
+H_{k+1} = (I - \rho_k s_k^T) H_k (I - y_k s_k^T) + \rho_k s_k^T
+\end{equation}
+
+4. End for
+
+Where
+\begin{equation}
+\rho_k = \frac{1}{y_k^T s_k}
+\end{equation}
+
+\section{BFGS Conditions}
+
+One condition that all Quasi-Newton methods must share is that the Hessian approximation \( B \) must satisfy the quasi-Newton condition (or secant equation):
+\begin{equation}
+B_{k+1} \Delta x_k = y_k
+\end{equation}
+where
+
+\hspace{0.3cm}\( \Delta x_k = x_{k+1} - x_k \) 
+
+\hspace{0.3cm}\( y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \)
+\vspace{0.3cm}
+
+Additionally, the Hessian approximation \( B \) must remain symmetric and positive definite. To ensure stability and robustness, \( B_{k+1} \) should be sufficiently close to \( B_k \) at each update. This closeness is often measured using a matrix norm:
+\begin{align}
+\min &\| B_{k+1} - B_k \| \\
+\text{subject to} \quad &B_{k+1}^T = B_{k+1} \\
+&B_{k+1} \Delta x_k = y_k
+\end{align}
+
+
+In practice, it is often the inverse of the Hessian, \( B^{-1} \), that is computed directly. This leads to an analogous optimization problem:
+\begin{align}
+\min &\| {B^{-1}}_{k+1} - {B^{-1}}_k \| \\
+\text{subject to} \quad &{B^{-1}}_{k+1}^T = {B^{-1}}_{k+1} \\
+&{B^{-1}}_{k+1} y_k = \Delta x_k
+\end{align}
+
+
+
+Different choices of matrix norms result in different quasi-Newton methods. In the BFGS method, the norm is chosen to be the Frobenius norm. The problem of updating the approximate Hessian at each iteration is equivalent to adding two symmetric, rank-one matrices \( U \) and \( V \):
+\begin{equation}
+B_{k+1} = B_k + U + V
+\end{equation}
+
+To fulfill the aforementioned conditions, the update matrices \( U \) and \( V \) are chosen to be of the form \( U = a uu^T \) and \( V = b vv^T \), where \( u \) and \( v \) are linearly independent non-zero vectors, and \( a \) and \( b \) are constants:
+\begin{equation}
+B_{k+1} = B_k + auu^T + bvv^T
+\end{equation}
+
+To ensure symmetry and positive-definiteness, the matrices \( U \) and \( V \) in the BFGS update are chosen such that:
+\begin{equation}
+u = y_k \quad \text{and} \quad v = B_k \Delta x_k
+\end{equation}
+with the constants:
+\begin{equation}
+a = \frac{1}{y_k^T \Delta x_k} \quad \text{and} \quad b = -\frac{1}{\Delta x_k^T B_k \Delta x_k}
+\end{equation}
+
+This results in the final BFGS update formula:
+\begin{equation}
+B_{k+1} = B_k + \frac{y_k y_k^T}{y_k^T s_k} - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k}
+\end{equation}
+
+The BFGS method maintains a positive definite approximation of the Hessian, ensuring that the search direction remains a descent direction. This results in faster convergence compared to simple gradient descent.
+
+\end{document}
